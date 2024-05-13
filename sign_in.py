@@ -42,7 +42,7 @@ class SignInSolver(BaseSolver):
         self.failure = 0
         self.in_progress = False
         self.start_time = datetime.now()
-        super().run()
+        return super().run()
 
     def notify(self, msg):
         logger.info(msg)
