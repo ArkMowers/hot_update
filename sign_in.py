@@ -99,7 +99,7 @@ class SignInSolver(BaseSolver):
         elif self.find("@hot/monthly_card/banner"):
             if self.tm.task == "monthly_card":
                 if pos := self.find("@hot/monthly_card/button_ok"):
-                    self.ctap(pos)
+                    self.ctap(pos, max_seconds=10)
                 else:
                     self.notify("今天的五周年专享月卡已经领取过了")
                     self.tm.complete("monthly_card")
