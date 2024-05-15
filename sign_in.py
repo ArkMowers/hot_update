@@ -1,10 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
-import cv2
-from arknights_mower.utils.image import loadres, saveimg
 from arknights_mower.utils.log import logger
-from arknights_mower.utils.matcher import ORB
 from arknights_mower.utils.solver import BaseSolver
 
 
@@ -33,7 +30,6 @@ class SignInSolver(BaseSolver):
         self.back_to_index()
         self.tm = TaskManager()
         self.tm.add("monthly_card", 2024, 6, 1)  # 五周年专享月卡
-        self.tm.add("ep14", 2024, 5, 22)  # 第十四章慈悲灯塔物资领取
 
         self.failure = 0
         self.in_progress = False
@@ -74,8 +70,6 @@ class SignInSolver(BaseSolver):
                 else:
                     self.notify("未检测到五周年月卡领取入口！")
                     self.tm.complete("monthly_card")
-            elif self.tm.task == "ep14":
-                self.tap_index_element("terminal")
             else:
                 return True
         elif self.find("@hot/monthly_card/banner"):
@@ -92,57 +86,6 @@ class SignInSolver(BaseSolver):
             if self.tm.task == "monthly_card":
                 self.notify("成功领取五周年专享月卡")
                 self.tm.complete("monthly_card")
-            elif self.tm.task == "ep14":
-                self.notify("成功领取理智小样和材料箱子")
-                self.tm.complete("ep14")
             self.tap((960, 960))
-        elif self.find("terminal_pre"):
-            if self.tm.task == "ep14":
-                img = loadres("@hot/ep14/terminal.jpg", True)
-                kp1, des1 = ORB.detectAndCompute(img, None)
-                kp2, des2 = ORB.detectAndCompute(self.recog.gray, None)
-                FLANN_INDEX_LSH = 6
-                index_params = dict(
-                    algorithm=FLANN_INDEX_LSH,
-                    table_number=6,  # 12
-                    key_size=12,  # 20
-                    multi_probe_level=1,  # 2
-                )
-                search_params = dict(checks=50)
-                flann = cv2.FlannBasedMatcher(index_params, search_params)
-                matches = flann.knnMatch(des1, des2, k=2)
-                GOOD_DISTANCE_LIMIT = 0.7
-                good = []
-                for pair in matches:
-                    if (len_pair := len(pair)) == 2:
-                        x, y = pair
-                        if x.distance < GOOD_DISTANCE_LIMIT * y.distance:
-                            good.append(x)
-                    elif len_pair == 1:
-                        good.append(pair[0])
-                good = sorted(good, key=lambda x: x.distance)
-                debug_img = cv2.drawMatches(
-                    img,
-                    kp1,
-                    self.recog.gray,
-                    kp2,
-                    good[:10],
-                    None,
-                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
-                )
-                saveimg(debug_img, "navigation")
-                self.tap(kp2[good[0].trainIdx].pt)
-            else:
-                self.back()
-        elif self.find("@hot/ep14/banner"):
-            if self.tm.task == "ep14":
-                self.ctap((157, 215))
-            else:
-                self.back()
-        elif self.find("@hot/ep14/details"):
-            if self.tm.task == "ep14":
-                self.notify("理智小样和材料箱子领完啦")
-                self.tm.complete("ep14")
-            self.back()
         else:
             return self.handle_unknown()
