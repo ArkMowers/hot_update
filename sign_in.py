@@ -87,5 +87,7 @@ class SignInSolver(BaseSolver):
                 self.notify("成功领取五周年专享月卡")
                 self.tm.complete("monthly_card")
             self.tap((960, 960))
+        elif pos := self.recog.check_announcement():
+            self.tap(pos)
         else:
             return self.handle_unknown()
