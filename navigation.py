@@ -1,5 +1,6 @@
 import lzma
 import pickle
+from datetime import datetime
 
 import cv2
 from arknights_mower.utils.image import loadres, saveimg
@@ -98,12 +99,16 @@ class NavigationSolver(BaseSolver):
 
             target = va(vm(loc, self.location[name]), self.location[self.name])
             if target[0] + 200 > 1920:
-                self.swipe_noinertia((1400, 540), (-400, 0))
+                self.swipe_noinertia((1400, 540), (-800, 0))
             elif target[0] < 0:
-                self.swipe_noinertia((400, 540), (400, 0))
+                self.swipe_noinertia((400, 540), (800, 0))
             else:
                 self.tap((target[0] + 60, target[1] + 20))
         elif self.find("ope_start"):
             return True
         else:
             self.sleep()
+
+
+if datetime.now() > datetime(2024, 6, 3, 4):
+    NavigationSolver.location = {}
