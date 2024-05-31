@@ -27,7 +27,6 @@ class TaskManager:
             self.task_list.remove(task)
 
 
-monthly_card = "monthly_card"
 lone_trail = "lone_trail"
 
 
@@ -36,7 +35,6 @@ class SignInSolver(BaseSolver):
         logger.info("Start: 签到活动")
         self.back_to_index()
         self.tm = TaskManager()
-        self.tm.add(monthly_card, 2024, 6, 1)  # 五周年专享月卡
         self.tm.add(lone_trail, 2024, 6, 7)  # 孤星领箱子
 
         self.failure = 0
@@ -72,31 +70,12 @@ class SignInSolver(BaseSolver):
             if self.tm.task == "back_to_index":
                 self.tm.complete("back_to_index")
                 return True
-            elif self.tm.task == monthly_card:
-                if pos := self.find("@hot/monthly_card/entry"):
-                    self.tap(pos)
-                else:
-                    self.notify("未检测到五周年月卡领取入口！")
-                    self.tm.complete(monthly_card)
             elif self.tm.task == lone_trail:
                 self.tap_index_element("terminal")
             else:
                 return True
-        elif self.find("@hot/monthly_card/banner"):
-            if self.tm.task == monthly_card:
-                if pos := self.find("@hot/monthly_card/button_ok"):
-                    self.ctap(pos, max_seconds=10)
-                else:
-                    self.notify("今天的五周年专享月卡已经领取过了")
-                    self.tm.complete(monthly_card)
-                    self.back()
-            else:
-                self.back()
         elif self.find("materiel_ico"):
-            if self.tm.task == monthly_card:
-                self.notify("成功领取五周年专享月卡")
-                self.tm.complete(monthly_card)
-            elif self.tm.task == lone_trail:
+            if self.tm.task == lone_trail:
                 self.notify("成功领取孤星箱子")
                 self.tm.complete(lone_trail)
             self.tap((960, 960))
