@@ -76,8 +76,12 @@ class SignInSolver(BaseSolver):
                 return True
         elif self.find("materiel_ico"):
             if self.tm.task == lone_trail:
-                self.notify("成功领取孤星箱子")
-                self.tm.complete(lone_trail)
+                if self.find("@hot/lone_trail/box_small"):
+                    self.notify("成功领取孤星箱子")
+                    self.tm.complete(lone_trail)
+                else:
+                    self.sleep()
+                    return
             self.tap((960, 960))
         elif self.find("terminal_pre"):
             if self.tm.task == lone_trail:
