@@ -93,7 +93,7 @@ class SignInSolver(BaseSolver):
                     algorithm=FLANN_INDEX_LSH,
                     table_number=6,  # 12
                     key_size=12,  # 20
-                    multi_probe_level=1,  # 2
+                    multi_probe_level=0,  # 2
                 )
                 search_params = dict(checks=50)
                 flann = cv2.FlannBasedMatcher(index_params, search_params)
