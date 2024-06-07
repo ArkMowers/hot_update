@@ -24,11 +24,15 @@ class TaskManager:
             self.task_list.remove(task)
 
 
+dragon_boat_festival = "dragon_boat_festival"
+
+
 class SignInSolver(BaseSolver):
     def run(self) -> None:
         logger.info("Start: 签到活动")
         self.back_to_index()
         self.tm = TaskManager()
+        self.tm.add(dragon_boat_festival, 2024, 6, 17)  # 端午节
 
         self.failure = 0
         self.in_progress = False
@@ -60,11 +64,40 @@ class SignInSolver(BaseSolver):
         if self.find("connecting"):
             return self.handle_unknown()
         elif self.recog.detect_index_scene():
-            if self.tm.task == "back_to_index":
-                self.tm.complete("back_to_index")
-                return True
+            if self.tm.task == dragon_boat_festival:
+                self.in_progress = False
+                if pos := self.find("@hot/dragon_boat_festival/entry"):
+                    self.tap(pos)
+                else:
+                    self.notify("未检测到端午签到活动入口！")
+                    self.tm.complete()
             else:
-                return True
+                self.tm.complete("back_to_index")
+        elif self.find("@hot/dragon_boat_festival/banner"):
+            if self.tm.task == dragon_boat_festival:
+                if self.find("@hot/dragon_boat_festival/completed"):
+                    self.notify("今日已助威")
+                    self.tm.complete()
+                elif self.find("@hot/dragon_boat_festival/sweet"):
+                    if not self.in_progress:
+                        self.notify("您是甜蜜捍卫者，mower为“甜蜜在心号”赛艇助威")
+                        self.in_progress = True
+                    self.ctap((1600, 950))
+                else:
+                    if not self.in_progress:
+                        self.notify("您不是甜蜜捍卫者，mower为“咸香满嘴号”赛艇助威")
+                        self.in_progress = True
+                    self.ctap((320, 950))
+            else:
+                self.back()
+        elif self.find("materiel_ico"):
+            self.sleep()
+            if self.tm.task == dragon_boat_festival:
+                self.notify("端午节活动签到成功")
+                self.tm.complete()
+            else:
+                self.notify("物资领取")
+            self.tap((960, 960))
         elif pos := self.recog.check_announcement():
             self.tap(pos)
         else:
