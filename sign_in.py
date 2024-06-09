@@ -70,31 +70,33 @@ class SignInSolver(BaseSolver):
                     self.tap(pos)
                 else:
                     self.notify("未检测到端午签到活动入口！")
-                    self.tm.complete()
+                    self.tm.complete(dragon_boat_festival)
             else:
                 self.tm.complete("back_to_index")
         elif self.find("@hot/dragon_boat_festival/banner"):
             if self.tm.task == dragon_boat_festival:
+                if self.in_progress:
+                    self.sleep()
+                    return
                 if self.find("@hot/dragon_boat_festival/completed"):
                     self.notify("今日已助威")
-                    self.tm.complete()
+                    self.tm.complete(dragon_boat_festival)
                 elif self.find("@hot/dragon_boat_festival/sweet"):
-                    if not self.in_progress:
-                        self.notify("您是甜蜜捍卫者，mower为“甜蜜在心号”赛艇助威")
-                        self.in_progress = True
+                    self.notify("您是甜蜜捍卫者，mower为“甜蜜在心号”赛艇助威")
+                    self.in_progress = True
                     self.ctap((1600, 950))
                 else:
-                    if not self.in_progress:
-                        self.notify("您不是甜蜜捍卫者，mower为“咸香满嘴号”赛艇助威")
-                        self.in_progress = True
+                    self.notify("您不是甜蜜捍卫者，mower为“咸香满嘴号”赛艇助威")
+                    self.in_progress = True
                     self.ctap((320, 950))
             else:
                 self.back()
         elif self.find("materiel_ico"):
             self.sleep()
             if self.tm.task == dragon_boat_festival:
+                self.in_progress = False
                 self.notify("端午节活动签到成功")
-                self.tm.complete()
+                self.tm.complete(dragon_boat_festival)
             else:
                 self.notify("物资领取")
             self.tap((960, 960))
