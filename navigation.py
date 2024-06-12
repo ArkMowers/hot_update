@@ -23,7 +23,7 @@ class NavigationSolver(BaseSolver):
     }
 
     def run(self, name: str) -> None:
-        logger.info("Start: 关卡导航")
+        logger.info("Start: 活动关卡导航")
         self.name = name
         with lzma.open(
             get_path("@install/tmp/hot_update/path_of_life/names.pkl"), "rb"

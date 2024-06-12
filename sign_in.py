@@ -78,17 +78,12 @@ class SignInSolver(BaseSolver):
                 if self.in_progress:
                     self.sleep()
                     return
-                if self.find("@hot/dragon_boat_festival/completed"):
-                    self.notify("今日已助威")
-                    self.tm.complete(dragon_boat_festival)
-                elif self.find("@hot/dragon_boat_festival/sweet"):
-                    self.notify("您是甜蜜捍卫者，mower为“甜蜜在心号”赛艇助威")
+                if pos := self.find("@hot/dragon_boat_festival/button"):
                     self.in_progress = True
-                    self.ctap((1600, 950))
+                    self.ctap(pos)
                 else:
-                    self.notify("您不是甜蜜捍卫者，mower为“咸香满嘴号”赛艇助威")
-                    self.in_progress = True
-                    self.ctap((320, 950))
+                    self.notify("奖励已领取")
+                    self.tm.complete(dragon_boat_festival)
             else:
                 self.back()
         elif self.find("materiel_ico"):
