@@ -8,26 +8,25 @@ from arknights_mower.utils.log import logger
 from arknights_mower.utils.matcher import ORB
 from arknights_mower.utils.path import get_path
 from arknights_mower.utils.solver import BaseSolver
+from arknights_mower.utils.vector import va, vs
 
 
 class NavigationSolver(BaseSolver):
     location = {
-        "BP-1": (0, 0),
-        "BP-2": (429, 76),
-        "BP-3": (690, -67),
-        "BP-4": (956, 47),
-        "BP-5": (1220, 160),
-        "BP-6": (1549, 1),
-        "BP-7": (1790, 471),
-        "BP-8": (2000, 341),
+        "HE-1": (0, 0),
+        "HE-2": (508, -1),
+        "HE-3": (1016, -1),
+        "HE-4": (1443, -344),
+        "HE-5": (2009, -344),
+        "HE-6": (2255, -1),
+        "HE-7": (2703, -344),
+        "HE-8": (3237, -141),
     }
 
     def run(self, name: str) -> None:
         logger.info("Start: 活动关卡导航")
         self.name = name
-        with lzma.open(
-            get_path("@install/tmp/hot_update/path_of_life/names.pkl"), "rb"
-        ) as f:
+        with lzma.open(get_path("@install/tmp/hot_update/hortus/names.pkl"), "rb") as f:
             self.names = pickle.load(f)
 
         self.back_to_index()
@@ -39,7 +38,7 @@ class NavigationSolver(BaseSolver):
         elif self.recog.detect_index_scene():
             self.tap_index_element("terminal")
         elif self.find("terminal_pre"):
-            img = loadres("@hot/path_of_life/terminal.jpg", True)
+            img = loadres("@hot/hortus/terminal.jpg", True)
             kp1, des1 = ORB.detectAndCompute(img, None)
             kp2, des2 = ORB.detectAndCompute(self.recog.gray, None)
             FLANN_INDEX_LSH = 6
@@ -72,30 +71,20 @@ class NavigationSolver(BaseSolver):
                 flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
             )
             saveimg(debug_img, "navigation")
-            self.tap(kp2[good[0].trainIdx].pt, interval=4)
-        elif pos := self.find("@hot/path_of_life/entry"):
+            self.tap(kp2[good[0].trainIdx].pt, interval=3)
+        elif pos := self.find("@hot/hortus/entry"):
             self.tap(pos, interval=2)
-        elif self.find("@hot/path_of_life/banner"):
-            name, val, loc = "BP-1", 1, None
-            for i in range(1, 9):
-                result = cv2.matchTemplate(
-                    self.recog.gray,
-                    self.names[i],
-                    cv2.TM_SQDIFF_NORMED,
-                )
+        elif self.find("@hot/hortus/banner"):
+            name, val, loc = None, 1, None
+            for n, img in self.names.items():
+                result = cv2.matchTemplate(self.recog.gray, img, cv2.TM_SQDIFF_NORMED)
                 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
                 if min_val < val:
                     val = min_val
                     loc = min_loc
-                    name = f"BP-{i}"
+                    name = n
 
-            def va(a, b):
-                return a[0] + b[0], a[1] + b[1]
-
-            def vm(a, b):
-                return a[0] - b[0], a[1] - b[1]
-
-            target = va(vm(loc, self.location[name]), self.location[self.name])
+            target = va(vs(loc, self.location[name]), self.location[self.name])
             if target[0] + 200 > 1920:
                 self.swipe_noinertia((1400, 540), (-800, 0))
             elif target[0] < 0:
@@ -108,5 +97,5 @@ class NavigationSolver(BaseSolver):
             self.sleep()
 
 
-if datetime.now() > datetime(2024, 6, 19, 4):
+if datetime.now() > datetime(2024, 7, 5, 4):
     NavigationSolver.location = {}
