@@ -11,8 +11,20 @@ from arknights_mower.utils.solver import BaseSolver
 from arknights_mower.utils.vector import va, vs
 
 
+class classproperty:
+    def __init__(self, method=None):
+        self.fget = method
+
+    def __get__(self, instance, cls=None):
+        return self.fget(cls)
+
+    def getter(self, method):
+        self.fget = method
+        return self
+
+
 class NavigationSolver(BaseSolver):
-    location = {
+    _location = {
         "HE-1": (0, 0),
         "HE-2": (508, -1),
         "HE-3": (1016, -1),
@@ -22,6 +34,12 @@ class NavigationSolver(BaseSolver):
         "HE-7": (2703, -344),
         "HE-8": (3237, -141),
     }
+
+    @classproperty
+    def location(cls):
+        if datetime.now() > datetime(2024, 7, 5, 4):
+            return {}
+        return cls._location
 
     def run(self, name: str) -> None:
         logger.info("Start: 活动关卡导航")
@@ -95,7 +113,3 @@ class NavigationSolver(BaseSolver):
             return True
         else:
             self.sleep()
-
-
-if datetime.now() > datetime(2024, 7, 5, 4):
-    NavigationSolver.location = {}
