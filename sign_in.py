@@ -1,8 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+import cv2
+import numpy as np
+from arknights_mower.utils.graph import SceneGraphSolver
 from arknights_mower.utils.log import logger
-from arknights_mower.utils.solver import BaseSolver
+from arknights_mower.utils.scene import Scene
+from arknights_mower.utils.vector import va
 
 
 class TaskManager:
@@ -24,15 +28,15 @@ class TaskManager:
             self.task_list.remove(task)
 
 
-dragon_boat_festival = "dragon_boat_festival"
+rogue = "rogue"
 
 
-class SignInSolver(BaseSolver):
+class SignInSolver(SceneGraphSolver):
     def run(self) -> None:
         logger.info("Start: 签到活动")
-        self.back_to_index()
+        self.scene_graph_navigation(Scene.INDEX)
         self.tm = TaskManager()
-        self.tm.add(dragon_boat_festival, 2024, 6, 17)  # 端午节
+        self.tm.add(rogue, 2024, 7, 19)  # 无终奇语签到活动
 
         self.failure = 0
         self.in_progress = False
@@ -49,14 +53,14 @@ class SignInSolver(BaseSolver):
         self.failure += 1
         if self.failure > 30:
             self.notify("签到任务执行失败！")
-            self.back_to_index()
+            self.scene_graph_navigation(Scene.INDEX)
             return True
         self.sleep()
 
     def transition(self) -> bool:
         if datetime.now() - self.start_time > timedelta(minutes=2):
             self.notify("签到任务超时！")
-            self.back_to_index()
+            self.scene_graph_navigation(Scene.INDEX)
             return True
         if not self.tm.task:
             return True
@@ -64,34 +68,39 @@ class SignInSolver(BaseSolver):
         if self.find("connecting"):
             return self.handle_unknown()
         elif self.recog.detect_index_scene():
-            if self.tm.task == dragon_boat_festival:
-                self.in_progress = False
-                if pos := self.find("@hot/dragon_boat_festival/entry"):
+            if self.tm.task == rogue:
+                if pos := self.find("@hot/rogue/entry"):
                     self.tap(pos)
                 else:
-                    self.notify("未检测到端午签到活动入口！")
-                    self.tm.complete(dragon_boat_festival)
+                    self.notify("未检测到无终奇语签到活动入口！")
+                    self.tm.complete(rogue)
             else:
                 self.tm.complete("back_to_index")
-        elif self.find("@hot/dragon_boat_festival/banner"):
-            if self.tm.task == dragon_boat_festival:
-                if self.in_progress:
-                    self.sleep()
-                    return
-                if pos := self.find("@hot/dragon_boat_festival/button"):
+        elif self.find("@hot/rogue/banner"):
+            if self.tm.task == rogue:
+                img = cv2.cvtColor(self.recog.img, cv2.COLOR_RGB2HSV)
+                img1 = cv2.inRange(img, (0, 200, 0), (5, 255, 255))
+                img2 = cv2.inRange(img, (175, 200, 0), (180, 255, 255))
+                img = cv2.bitwise_or(img1, img2)
+                tpl = np.zeros((100, 100), dtype=np.uint8)
+                tpl[:] = (255,)
+                result = cv2.matchTemplate(img, tpl, cv2.TM_CCORR_NORMED)
+                min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+                if max_val > 0.9:
                     self.in_progress = True
-                    self.ctap(pos)
+                    self.ctap(va(max_loc, (50, 50)))
                 else:
-                    self.notify("奖励已领取")
-                    self.tm.complete(dragon_boat_festival)
+                    if not self.in_progress:
+                        self.notify("无终奇语签到奖励已领完")
+                    self.in_progress = False
+                    self.tm.complete(rogue)
+                    self.back()
             else:
                 self.back()
         elif self.find("materiel_ico"):
             self.sleep()
-            if self.tm.task == dragon_boat_festival:
-                self.in_progress = False
-                self.notify("端午节活动签到成功")
-                self.tm.complete(dragon_boat_festival)
+            if self.tm.task == rogue:
+                self.notify("无终奇语活动签到成功")
             else:
                 self.notify("物资领取")
             self.tap((960, 960))
