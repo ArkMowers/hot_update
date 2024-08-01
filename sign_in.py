@@ -94,7 +94,7 @@ class SignInSolver(SceneGraphSolver):
                 top_left = 677, 333
                 img = cropimg(self.recog.img, (top_left, (1790, 565)))
                 img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-                img = cv2.inRange(img, (5, 100, 0), (15, 255, 255))
+                img = cv2.inRange(img, (5, 100, 100), (15, 255, 255))
                 tpl = np.zeros((100, 100), dtype=np.uint8)
                 tpl[:] = (255,)
                 result = cv2.matchTemplate(img, tpl, cv2.TM_CCORR_NORMED)
