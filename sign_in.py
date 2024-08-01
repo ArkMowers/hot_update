@@ -30,6 +30,7 @@ class TaskManager:
 
 
 brilliant_sun = "brilliant_sun"
+orundum = "orundum"
 headhunting = "headhunting"
 
 
@@ -39,6 +40,7 @@ class SignInSolver(SceneGraphSolver):
         self.scene_graph_navigation(Scene.INDEX)
         self.tm = TaskManager()
         self.tm.add(brilliant_sun, 2024, 8, 15)  # 沉沙赫日签到活动
+        self.tm.add(orundum, 2024, 8, 15)  # 大巴扎许愿墙
         self.tm.add(headhunting, 2024, 8, 15)  # 每日赠送单抽
 
         self.failure = 0
@@ -76,6 +78,12 @@ class SignInSolver(SceneGraphSolver):
                 else:
                     self.notify("未检测到沉沙赫日签到活动入口！")
                     self.tm.complete(brilliant_sun)
+            elif self.tm.task == orundum:
+                if pos := self.find("@hot/orundum/entry"):
+                    self.tap(pos)
+                else:
+                    self.notify("未检测到大巴扎许愿墙活动入口！")
+                    self.tm.complete(orundum)
             elif self.tm.task == headhunting:
                 self.tap_index_element("headhunting")
             else:
@@ -99,10 +107,26 @@ class SignInSolver(SceneGraphSolver):
                     self.back()
             else:
                 self.back()
+        elif self.find("@hot/orundum/banner"):
+            if self.tm.task == orundum:
+                for x in range(445, 1520, 213):
+                    if self.find("@hot/orundum/choose"):
+                        self.tap((x, 415))
+                    elif pos := self.find("@hot/orundum/confirm"):
+                        self.tap(pos)
+                        break
+                    else:
+                        self.sleep()
+                        break
+            else:
+                self.back()
         elif self.find("materiel_ico"):
             self.sleep()
             if self.tm.task == brilliant_sun:
                 self.notify("沉沙赫日活动签到成功")
+            elif self.tm.task == orundum:
+                self.notify("成功领取许愿墙奖励")
+                self.tm.complete(orundum)
             else:
                 self.notify("物资领取")
             self.tap((960, 960))
