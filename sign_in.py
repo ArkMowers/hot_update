@@ -112,6 +112,10 @@ class SignInSolver(SceneGraphSolver):
                 self.back()
         elif self.find("@hot/orundum/banner"):
             if self.tm.task == orundum:
+                if self.find("@hot/orundum/complete"):
+                    self.tm.complete(orundum)
+                    self.notify("今日许愿墙奖励已领完")
+                    self.back()
                 for x in range(445, 1520, 213):
                     if self.find("@hot/orundum/choose"):
                         self.tap((x, 415))
