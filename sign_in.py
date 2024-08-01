@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from arknights_mower.utils.email import send_message
 from arknights_mower.utils.graph import SceneGraphSolver
+from arknights_mower.utils.image import cropimg
 from arknights_mower.utils.log import logger
 from arknights_mower.utils.scene import Scene
 from arknights_mower.utils.vector import va
@@ -90,7 +91,9 @@ class SignInSolver(SceneGraphSolver):
                 self.tm.complete("back_to_index")
         elif self.find("@hot/brilliant_sun/banner"):
             if self.tm.task == brilliant_sun:
-                img = cv2.cvtColor(self.recog.img, cv2.COLOR_RGB2HSV)
+                top_left = 677, 333
+                img = cropimg(self.recog.img, (top_left, (1790, 565)))
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
                 img = cv2.inRange(img, (5, 100, 0), (15, 255, 255))
                 tpl = np.zeros((100, 100), dtype=np.uint8)
                 tpl[:] = (255,)
@@ -98,7 +101,7 @@ class SignInSolver(SceneGraphSolver):
                 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
                 if max_val > 0.9:
                     self.in_progress = True
-                    self.ctap(va(max_loc, (50, 50)))
+                    self.ctap(va(va(max_loc, top_left), (50, 50)))
                 else:
                     if not self.in_progress:
                         self.notify("沉沙赫日签到奖励已领完")
