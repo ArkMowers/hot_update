@@ -30,6 +30,7 @@ class TaskManager:
 
 
 brilliant_sun = "brilliant_sun"
+headhunting = "headhunting"
 
 
 class SignInSolver(SceneGraphSolver):
@@ -38,6 +39,7 @@ class SignInSolver(SceneGraphSolver):
         self.scene_graph_navigation(Scene.INDEX)
         self.tm = TaskManager()
         self.tm.add(brilliant_sun, 2024, 8, 15)  # 沉沙赫日签到活动
+        self.tm.add(headhunting, 2024, 8, 15)  # 每日赠送单抽
 
         self.failure = 0
         self.in_progress = False
@@ -74,6 +76,8 @@ class SignInSolver(SceneGraphSolver):
                 else:
                     self.notify("未检测到沉沙赫日签到活动入口！")
                     self.tm.complete(brilliant_sun)
+            elif self.tm.task == headhunting:
+                self.tap_index_element("headhunting")
             else:
                 self.tm.complete("back_to_index")
         elif self.find("@hot/brilliant_sun/banner"):
@@ -102,6 +106,31 @@ class SignInSolver(SceneGraphSolver):
             else:
                 self.notify("物资领取")
             self.tap((960, 960))
+        elif pos := self.find("pull_once"):
+            if self.tm.task == headhunting:
+                if self.find("@hot/headhunting/banner"):
+                    if self.find("@hot/headhunting/available"):
+                        self.tap(pos)
+                else:
+                    self.notify("在流沙上刻印卡池已关闭")
+                    self.tm.complete(headhunting)
+                    self.back()
+            else:
+                self.back()
+        elif pos := self.find("double_confirm/main"):
+            if not self.find("@hot/headhunting/free"):
+                return self.handle_unknown()
+            if self.tm.task == headhunting:
+                self.tap(pos, x_rate=1)
+            else:
+                self.tap(pos, x_rate=0)
+        elif pos := self.find("skip"):
+            self.ctap(pos)
+        elif pos := self.find("@hot/headhunting/contract"):
+            if self.tm.task == headhunting:
+                self.notify("成功抽完赠送单抽")
+                self.tm.complete(headhunting)
+            self.tap((960, 540))
         elif pos := self.recog.check_announcement():
             self.tap(pos)
         else:
