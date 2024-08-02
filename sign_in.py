@@ -49,22 +49,22 @@ class SignInSolver(SceneGraphSolver):
         self.start_time = datetime.now()
         return super().run()
 
-    def notify(self, msg):
+    def notify(self, msg, level="INFO"):
         logger.info(msg)
         self.recog.save_screencap("sign_in")
-        send_message(msg, attach_image=self.recog.img)
+        send_message(msg, level=level, attach_image=self.recog.img)
 
     def handle_unknown(self):
         self.failure += 1
         if self.failure > 30:
-            self.notify("签到任务执行失败！")
+            self.notify("签到任务执行失败！", level="ERROR")
             self.scene_graph_navigation(Scene.INDEX)
             return True
         self.sleep()
 
     def transition(self) -> bool:
         if datetime.now() - self.start_time > timedelta(minutes=2):
-            self.notify("签到任务超时！")
+            self.notify("签到任务超时！", level="ERROR")
             self.scene_graph_navigation(Scene.INDEX)
             return True
         if not self.tm.task:
