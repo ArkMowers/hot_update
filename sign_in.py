@@ -75,13 +75,13 @@ class SignInSolver(SceneGraphSolver):
         elif self.recog.detect_index_scene():
             if self.tm.task == brilliant_sun:
                 if pos := self.find("@hot/brilliant_sun/entry"):
-                    self.tap(pos)
+                    self.ctap(pos)
                 else:
                     self.notify("未检测到沉沙赫日签到活动入口！")
                     self.tm.complete(brilliant_sun)
             elif self.tm.task == orundum:
                 if pos := self.find("@hot/orundum/entry"):
-                    self.tap(pos)
+                    self.ctap(pos)
                 else:
                     self.notify("未检测到大巴扎许愿墙活动入口！")
                     self.tm.complete(orundum)
@@ -120,7 +120,7 @@ class SignInSolver(SceneGraphSolver):
                     if self.find("@hot/orundum/choose"):
                         self.tap((x, 415))
                     elif pos := self.find("@hot/orundum/confirm"):
-                        self.tap(pos)
+                        self.ctap(pos)
                         break
                     else:
                         self.sleep()
@@ -142,9 +142,11 @@ class SignInSolver(SceneGraphSolver):
                 if self.find("@hot/headhunting/banner"):
                     if self.find("@hot/headhunting/available"):
                         self.tap(pos)
+                    else:
+                        self.notify("今日赠送单抽已抽完")
+                        self.tm.complete(headhunting)
                 else:
                     self.notify("在流沙上刻印卡池已关闭")
-                    self.tm.complete(headhunting)
                     self.back()
             else:
                 self.back()
