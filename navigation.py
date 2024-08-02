@@ -5,7 +5,11 @@ from datetime import datetime
 import cv2
 from arknights_mower.utils.image import loadres, saveimg
 from arknights_mower.utils.log import logger
-from arknights_mower.utils.matcher import ORB
+from arknights_mower.utils.matcher import (
+    GOOD_DISTANCE_LIMIT,
+    flann,
+    keypoints_scale_invariant,
+)
 from arknights_mower.utils.path import get_path
 from arknights_mower.utils.solver import BaseSolver
 from arknights_mower.utils.vector import va, vs
@@ -25,26 +29,27 @@ class classproperty:
 
 class NavigationSolver(BaseSolver):
     _location = {
-        "HE-1": (0, 0),
-        "HE-2": (508, -1),
-        "HE-3": (1016, -1),
-        "HE-4": (1443, -344),
-        "HE-5": (2009, -344),
-        "HE-6": (2255, -1),
-        "HE-7": (2703, -344),
-        "HE-8": (3237, -141),
+        "AS-1": (0, 0),
+        "AS-2": (1391, 514),
+        "AS-3": (1696, 630),
+        "AS-4": (407, 522),
+        "AS-5": (690, 351),
+        "AS-6": (1381, 454),
+        "AS-7": (1450, 679),
+        "AS-8": (1766, 599),
+        "AS-9": (430, 406),
     }
 
     @classproperty
     def location(cls):
-        if datetime.now() > datetime(2024, 7, 5, 4):
+        if datetime.now() > datetime(2024, 8, 5, 4):
             return {}
         return cls._location
 
     def run(self, name: str) -> None:
         logger.info("Start: 活动关卡导航")
         self.name = name
-        with lzma.open(get_path("@install/tmp/hot_update/hortus/names.pkl"), "rb") as f:
+        with lzma.open(get_path("@install/tmp/hot_update/inudi/names.pkl"), "rb") as f:
             self.names = pickle.load(f)
 
         self.back_to_index()
@@ -55,21 +60,11 @@ class NavigationSolver(BaseSolver):
             self.sleep()
         elif self.recog.detect_index_scene():
             self.tap_index_element("terminal")
-        elif self.find("terminal_pre"):
-            img = loadres("@hot/hortus/terminal.jpg", True)
-            kp1, des1 = ORB.detectAndCompute(img, None)
-            kp2, des2 = ORB.detectAndCompute(self.recog.gray, None)
-            FLANN_INDEX_LSH = 6
-            index_params = dict(
-                algorithm=FLANN_INDEX_LSH,
-                table_number=6,  # 12
-                key_size=12,  # 20
-                multi_probe_level=0,  # 2
-            )
-            search_params = dict(checks=50)
-            flann = cv2.FlannBasedMatcher(index_params, search_params)
+        elif self.find("terminal_main"):
+            img = loadres("@hot/inudi/terminal.jpg", True)
+            kp1, des1 = keypoints_scale_invariant(img)
+            kp2, des2 = self.recog.matcher.kp, self.recog.matcher.des
             matches = flann.knnMatch(des1, des2, k=2)
-            GOOD_DISTANCE_LIMIT = 0.7
             good = []
             for pair in matches:
                 if (len_pair := len(pair)) == 2:
@@ -90,9 +85,9 @@ class NavigationSolver(BaseSolver):
             )
             saveimg(debug_img, "navigation")
             self.tap(kp2[good[0].trainIdx].pt, interval=3)
-        elif pos := self.find("@hot/hortus/entry"):
+        elif pos := self.find("@hot/inudi/entry"):
             self.tap(pos, interval=2)
-        elif self.find("@hot/hortus/banner"):
+        elif self.find("@hot/inudi/banner"):
             name, val, loc = None, 1, None
             for n, img in self.names.items():
                 result = cv2.matchTemplate(self.recog.gray, img, cv2.TM_SQDIFF_NORMED)
@@ -104,11 +99,11 @@ class NavigationSolver(BaseSolver):
 
             target = va(vs(loc, self.location[name]), self.location[self.name])
             if target[0] + 200 > 1920:
-                self.swipe_noinertia((1400, 540), (-800, 0))
+                self.swipe_noinertia((1400, 540), (-1600, 0))
             elif target[0] < 0:
-                self.swipe_noinertia((400, 540), (800, 0))
+                self.swipe_noinertia((400, 540), (1600, 0))
             else:
-                self.tap((target[0] + 60, target[1] + 20))
+                self.tap(va(target, (60, 20)))
         elif self.find("ope_start"):
             return True
         else:
