@@ -61,7 +61,7 @@ class NavigationSolver(BaseSolver):
         elif self.recog.detect_index_scene():
             self.tap_index_element("terminal")
         elif self.find("terminal_main"):
-            img = loadres("@hot/inudi/terminal.jpg", True)
+            img = loadres("@hot/inudi/terminal", True)
             kp1, des1 = keypoints_scale_invariant(img)
             kp2, des2 = self.recog.matcher.kp, self.recog.matcher.des
             matches = flann.knnMatch(des1, des2, k=2)
