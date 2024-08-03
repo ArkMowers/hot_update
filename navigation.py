@@ -99,9 +99,9 @@ class NavigationSolver(BaseSolver):
 
             target = va(vs(loc, self.location[name]), self.location[self.name])
             if target[0] + 200 > 1920:
-                self.swipe_noinertia((1400, 540), (-1600, 0))
+                self.swipe_noinertia((1400, 540), (-1000, 0))
             elif target[0] < 0:
-                self.swipe_noinertia((400, 540), (1600, 0))
+                self.swipe_noinertia((400, 540), (1000, 0))
             else:
                 self.tap(va(target, (60, 20)))
         elif self.find("ope_start"):
