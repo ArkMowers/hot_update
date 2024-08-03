@@ -42,7 +42,7 @@ class NavigationSolver(BaseSolver):
 
     @classproperty
     def location(cls):
-        if datetime.now() > datetime(2024, 8, 5, 4):
+        if datetime.now() > datetime(2024, 8, 22, 4):
             return {}
         return cls._location
 
